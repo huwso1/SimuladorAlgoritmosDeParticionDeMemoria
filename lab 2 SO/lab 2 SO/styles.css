@@ -1,0 +1,70 @@
+    body {
+        font-family: Arial, sans-serif;
+        line-height: 1.5;
+        padding: 20px;
+        color: #333;
+    }
+    
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    h1 {
+        font-size: 24px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    
+    h2 {
+        font-size: 20px;
+        margin: 25px 0 15px 0;
+    }
+    
+    /* Panel de control */
+    .control-panel {
+        margin-bottom: 30px;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    
+    .form-group {
+        margin-bottom: 10px;
+    }
+    
+    .form-group label {
+        display: inline-block;
+        width: 200px;
+        font-weight: bold;
+    }
+    
+    select, input {
+        padding: 6px 10px;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+    }
+    
+    /* Tablas */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+    
+    th, td {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        text-align: left;
+    }
+    
+    th {
+        background-color: #f2f2f2;
+    }
+    
+    /* Visualización de memoria */
+    #memoryMap {
+        height: 60px;
+        border: 1px solid #ddd;
+        margin-bottom: 20px;
+    }
