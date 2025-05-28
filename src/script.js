@@ -21,9 +21,11 @@ const config = {
 const elements = {
   availableProcessesTable: document.getElementById('availableProcessesTable'),
   memoryProcessTable: document.querySelector('#memoryProcessTable tbody'),
-  memoryMap: document.getElementById('memoryMap')
+  memoryMap: document.getElementById('memoryMap'),
+  processOverTime: document.getElementById('ProcessOverTime')
 };
 var procesosDisponibles=[]
+var procesosDisponiblesSobreElTiempo=[]
 
 function showAvailableProcesses() {
     const header = `
@@ -254,5 +256,64 @@ document.getElementById("numberOfProcesses").addEventListener("change",(event)=>
             row.remove(); // Remove rows that are not part of the <thead>
         }
     });
+}
+function clearProcessinTimeTable() {
+   const rows = elements.processOverTime.querySelectorAll('tr');
+   rows.forEach((row) => {
+      if (!row.closest('thead')) {
+          row.remove(); // Remove rows that are not part of the <thead>
+      }
+  });
+}
+document.getElementById("cicleNumber").addEventListener("change",generateProcessOverTimeTable)
+function generateProcessOverTimeTable(){
+    var cyclesinput=document.getElementById("cicleNumber");
+    var processnameheader=document.createElement("th");
+    var headersrow=document.createElement("tr");
+    var theader=document.getElementById("availableProcessesTableheaders");
+      if(theader.innerHTML){
+        theader.innerHTML='';
+      }
+      clearProcessinTimeTable();
+    
+     //Se itera tantas veces como ciclos sean.
+      processnameheader.textContent="Nombre de proceso";
+      headersrow.appendChild(processnameheader);
+     for(let i=0; i<=cyclesinput.value;i++){
+        var timeth=document.createElement("th");
+        timeth.textContent=""+i;
+        headersrow.appendChild(timeth);
+     }
+     theader.appendChild(headersrow);
+     //Se anaden las casillas correspondientes a los procesos
+     procesosDisponibles.forEach((proceso)=>{
+      let procesoSobreElTiempo=[];
+      let processrow= document.createElement("tr");
+      let nombredeproceso=proceso[1];
+      let NombredeprocesoColumna=document.createElement("td");
+      
+      NombredeprocesoColumna.textContent=nombredeproceso;
+      procesoSobreElTiempo.push(NombredeprocesoColumna);
+      processrow.appendChild(NombredeprocesoColumna);
+
+      for(let i=0; i<=cyclesinput.value;i++){
+        var timecolumn=document.createElement("td");
+        //Listener que hara cambiar de color a las casillas de tiempo cuando se clickean
+        timecolumn.addEventListener("click",(event)=>{
+          if (event.target.style.backgroundColor === "rgb(0, 128, 0)" || event.target.style.backgroundColor === "green") {
+            event.target.style.backgroundColor = "white";
+        } else {
+            event.target.style.backgroundColor = "green";
+        }
+          })
+          processrow.appendChild(timecolumn);
+          procesoSobreElTiempo.push(timecolumn);
+        timeth.textContent=""+i;
+        
+      }
+      elements.processOverTime.appendChild(processrow)
+      
+     })
+
 }
 

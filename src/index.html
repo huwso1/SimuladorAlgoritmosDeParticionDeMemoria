@@ -37,6 +37,10 @@
                     <option value="4096">4096</option>
                 </select>
             </div>
+            <div class="form-group" id="simulationsize">
+                <label for="cicleNumber">Numero de ciclos:</label>
+                <input type="number" min="0" max="20" placeholder="Numero de ciclos a simular" id="cicleNumber" size="20">
+            </div>
 
             <div class="form-group" id="partitionCountGroup">
                 <label for="partitionCount"> Número de particiones:</label>
@@ -94,7 +98,17 @@
             <button id="saveButton">Guardar procesos</button>
             <input id="loadButton" type="file" accept=".txt">Cargar procesos</button>
            </div>
+           <div class="process-library" id="procesosdisponibles">
+            <h2>Interaccion de procesos en el tiempo</h2>
+            <table id="ProcessOverTime">
+                <thead id="availableProcessesTableheaders">
 
+                </thead>
+                <tbody>
+
+                </tbody>
+            </table>
+           </div>
            <div class="memory-visualization" id="visualizaciondememoria">
             <h2>Visualización de Memoria</h2>
             <div id="memoryMap"></div>

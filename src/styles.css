@@ -38,6 +38,11 @@
         width: 200px;
         font-weight: bold;
     }
+    .form-group input {
+        display: inline-block;
+        width: 200px;
+        font-weight: bold;
+    }
     
     select, input {
         padding: 6px 10px;
