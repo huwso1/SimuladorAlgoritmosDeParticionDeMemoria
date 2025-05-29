@@ -66,6 +66,47 @@
     th {
         background-color: #f2f2f2;
     }
+    #memorymapTable{
+        height:1000px;
+        width: 300px;
+        
+        border: 2px solid;
+        table-layout: fixed; /* Ensures the table respects the fixed height */
+        overflow: hidden;
+        display: flex; /* Use flexbox for alignment */
+        flex-direction: column; /* Stack rows vertically */
+       
+    }
+    #memorymapTable thead {
+        flex-shrink: 0; /* Prevents the header from shrinking */
+        padding: 1px;
+        margin: 10px;
+    }
+    #memorymapTable tbody {
+        display: flex; /* Use flexbox for the body */
+        flex-direction: column; /* Stack rows vertically */
+        justify-content: flex-end; /* Align rows to the bottom */
+        overflow-y: auto; /* Adds scrolling if rows exceed the table height */
+        flex-grow: 1; /* Allows the tbody to grow and fill available space */
+    }
+    #memorymapTable tr {
+        display: flex; /* Treat rows as flex items */
+        border: 2px solid;
+       
+        align-items: center; /* Vertically center content in rows */
+    }
+    #memorymapTable td, #memorymapTable th {
+        flex: 1; /* Ensure cells stretch evenly */
+        text-align: left;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+    }
+    #memorymapTable th {
+        background-color: #f2f2f2;
+        height: 50px; /* Fixed height for the header */
+        line-height: 50px; /* Vertically center text in the header */
+        
+    }
     
     /* Visualización de memoria */
     #memoryMap {

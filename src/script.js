@@ -1,10 +1,13 @@
 import fileUtil from './util/fileUtil.js';
+import mathUtil from './util/mathUtil.js'
 
 const fu=new fileUtil();
+const mt=new mathUtil();
 //Configuracion inicial
 const config = {
     memorySize:16*1024*1024,
     osSize:1024*1024,
+    osPartition:0,
     headerEXE:767,
     processes:[
         {id:"p1", name: "Proceso 1", sizeInDisk: "", sizeInCode:"", initializedDataSize:"", uninitializedDataSize:"", initialMemory:"", memoryToUse:"", inKB:""},
@@ -22,7 +25,8 @@ const elements = {
   availableProcessesTable: document.getElementById('availableProcessesTable'),
   memoryProcessTable: document.querySelector('#memoryProcessTable tbody'),
   memoryMap: document.getElementById('memoryMap'),
-  processOverTime: document.getElementById('ProcessOverTime')
+  processOverTime: document.getElementById('ProcessOverTime'),
+  memoryMapbody: document.getElementById('"memorymapTablebody"')
 };
 var procesosDisponibles=[]
 var procesosDisponiblesSobreElTiempo=[]
@@ -45,6 +49,7 @@ function showAvailableProcesses() {
   document.getElementById("procesosenmemoria").setAttribute("hidden","true");
   document.getElementById("tabladedescripciondeparticiones").setAttribute("hidden","true");
   document.getElementById("visualizaciondememoria").setAttribute("hidden","true");
+  document.getElementById("partitionSize").setAttribute("hidden","true");
  
 
   
@@ -265,7 +270,17 @@ function clearProcessinTimeTable() {
       }
   });
 }
+function clearMemoryMap() {
+  const rows = document.getElementById("memorymapTable").querySelectorAll('tr');
+  rows.forEach((row) => {
+     if (!row.closest('thead')) {
+         row.remove(); // Remove rows that are not part of the <thead>
+     }
+ });
+}
+//Listener que se activa cuando la casilla del numbero de ciclos se modifica
 document.getElementById("cicleNumber").addEventListener("change",generateProcessOverTimeTable)
+//Funcion que genera la tabla de procesos sobre el tiempo a partir de la lista de procesos
 function generateProcessOverTimeTable(){
     var cyclesinput=document.getElementById("cicleNumber");
     var processnameheader=document.createElement("th");
@@ -314,6 +329,60 @@ function generateProcessOverTimeTable(){
       elements.processOverTime.appendChild(processrow)
       
      })
+
+}
+
+//Muestra los campos necesarios para llenar la informacion que cada algoritmo necesita
+function generateElementsForManagementMethod(event){
+  document.getElementById("partitionSize").setAttribute("hidden",true)
+  if(event.target.value=="fixed"){
+    var pts=document.getElementById("partitionSize")
+    pts.removeAttribute("hidden");
+    config.osPartition=mt.calculateOSPartitionSize(config.osSize);
+    console.log(config.osPartition);
+    
+
+  }
+  if(event.target.value=="variable"){
+
+  }
+  if(event.target.value=="dynamic"){
+
+  }
+  if(event.target.value=="dynamic-compact"){
+
+  }
+}
+//Listeners del campo ManagementMethod
+document.getElementById("managementMethod").addEventListener("click",generateElementsForManagementMethod)
+document.getElementById("managementMethod").addEventListener("change",generateElementsForManagementMethod)
+//Listener del campo partition Size
+document.getElementById("partitionSize").addEventListener("change",generatePartitions)
+function generatePartitions(event){
+  elements.memoryMap.removeAttribute("hidden");
+  document.getElementById("visualizaciondememoria").removeAttribute("hidden");
+  generateStaticPartitions();
+  
+}
+function generateStaticPartitions(){
+  clearMemoryMap();
+  let tamanodeparticion=document.getElementById("partitionSize").value;
+  var AvailableMemory=config.memorySize;
+  //Crear la particion del sistema operativo
+  let OStr= document.createElement("tr");
+  let AuxMemoryProportion=config.osSize/config.memorySize;
+  OStr.style.height=(940*AuxMemoryProportion)+"px";
+  OStr.textContent="SO";
+  let begin=0;
+  OStr.textContent= OStr.textContent+"("+begin.toString(16)+"-"+config.osPartition.toString(16)+")";
+  document.getElementById("memorymapTable").appendChild(OStr);
+  for(let i=0;i<15;i++){
+  let test=document.createElement("tr");
+  test.style.height=(940*AuxMemoryProportion)+"px";
+  test.textContent="SO";
+  document.getElementById("memorymapTable").appendChild(test);
+}
+
 
 }
 
