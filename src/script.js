@@ -1,5 +1,7 @@
 import fileUtil from './util/fileUtil.js';
-import mathUtil from './util/mathUtil.js'
+import mathUtil from './util/mathUtil.js';
+import particion from './Entidades/particion.js';
+import AlgorithmMediator from './AlgorithmMediator.js';
 
 const fu=new fileUtil();
 const mt=new mathUtil();
@@ -30,6 +32,7 @@ const elements = {
 };
 var procesosDisponibles=[]
 var procesosDisponiblesSobreElTiempo=[]
+var listadeparticiones=[]
 
 function showAvailableProcesses() {
     const header = `
@@ -326,7 +329,10 @@ function generateProcessOverTimeTable(){
         timeth.textContent=""+i;
         
       }
+      
+      procesosDisponiblesSobreElTiempo.push(procesoSobreElTiempo);
       elements.processOverTime.appendChild(processrow)
+      
       
      })
 
@@ -340,6 +346,7 @@ function generateElementsForManagementMethod(event){
     pts.removeAttribute("hidden");
     config.osPartition=mt.calculateOSPartitionSize(config.osSize);
     console.log(config.osPartition);
+    document.getElementById("tabladedescripciondeparticiones").removeAttribute("hidden")
     
 
   }
@@ -366,23 +373,60 @@ function generatePartitions(event){
 }
 function generateStaticPartitions(){
   clearMemoryMap();
-  let tamanodeparticion=document.getElementById("partitionSize").value;
+  let tamanodeparticion=document.getElementById("partitionSize").value*1024;
+  let tabladedescripciondeparticiones=document.getElementById("partitionTable");
   var AvailableMemory=config.memorySize;
+   listadeparticiones=[]
   //Crear la particion del sistema operativo
   let OStr= document.createElement("tr");
   let AuxMemoryProportion=config.osSize/config.memorySize;
-  OStr.style.height=(940*AuxMemoryProportion)+"px";
-  OStr.textContent="SO";
+  OStr.style.height=(1660*AuxMemoryProportion)+"px";
   let begin=0;
-  OStr.textContent= OStr.textContent+"("+begin.toString(16)+"-"+config.osPartition.toString(16)+")";
-  document.getElementById("memorymapTable").appendChild(OStr);
-  for(let i=0;i<15;i++){
-  let test=document.createElement("tr");
-  test.style.height=(940*AuxMemoryProportion)+"px";
-  test.textContent="SO";
-  document.getElementById("memorymapTable").appendChild(test);
-}
+  var OSpartition=new particion(OStr,config.osSize,begin,"SO");
+  //Se anade la particion a la tabla de descripcion de particiones
+  tabladedescripciondeparticiones.appendChild(OSpartition.Generardescripciondeparticion());
+  OSpartition.AsignarProceso("SO");
+  
+  listadeparticiones.push(OSpartition);
+  let numerodeparticiones=(config.memorySize-config.osSize)/tamanodeparticion;
 
+  AuxMemoryProportion=tamanodeparticion/config.memorySize;
+  let memoriausada=config.osSize;
+  for(let i=0;i<numerodeparticiones;i++){
+  memoriausada=memoriausada+tamanodeparticion;
+  if(memoriausada>config.memorySize){
+    alert("este tamano de particion dejara espacio de memoria sin aprovechar");
+    break
+  }
+  var test=document.createElement("tr");
+  test.style.height=(1660*AuxMemoryProportion)+"px";
+  var partition=new particion(test,tamanodeparticion,listadeparticiones[listadeparticiones.length-1].direccionfinal+1,"Particion"+i);
+   //Se anade la particion a la tabla de descripcion de particiones
+  tabladedescripciondeparticiones.appendChild(partition.Generardescripciondeparticion());
+  listadeparticiones.push(partition);
+}
+ var listaauxiliar=[];
+//Se reorganizan las particiones para que aparezcan en orden
+  for(let i=listadeparticiones.length-1;i>=0;i--){
+    console.log(listadeparticiones[i])
+    document.getElementById("memorymapTable").appendChild(listadeparticiones[i].htmlcomponent);
+   listaauxiliar.push(listadeparticiones[i]);
+  }
+  listadeparticiones=listaauxiliar;
+document.getElementById("memorymapTable").appendChild(OStr);
 
 }
+document.getElementById("start").addEventListener("click",()=>{
+  
+  if(procesosDisponibles.length>1 && listadeparticiones.length>1 && procesosDisponiblesSobreElTiempo.length>1){
+    if(document.getElementById("managementMethod").value=="fixed"){
+      //Se ejecuta el algoritmo de particiones estaticas
+      let mediador=new AlgorithmMediator(procesosDisponibles,procesosDisponiblesSobreElTiempo,listadeparticiones,document.getElementById("memoryProcessTable"),document.getElementById("partitionTable"));
+      mediador.ExecuteStaticPartitionAlgorithm();
+      document.getElementById("procesosenmemoria").removeAttribute("hidden");
+    }
+  }else{
+    alert("llene todos los campos necesarios para realizar la simulacion")
+  }
+});
 

@@ -3,6 +3,7 @@ class Clock {
         this.interval = interval; // Interval in milliseconds
         this.timer = null;
         this.suscribers=[];
+        this.time=0;
     }
 
     start(callback) {

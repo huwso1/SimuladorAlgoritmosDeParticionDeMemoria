@@ -62,12 +62,24 @@
         border: 1px solid #ddd;
         text-align: left;
     }
+    .memory-section {
+        display: flex; /* Use flexbox to align children horizontally */
+        gap: 20px; /* Add space between the two divs */
+        align-items: flex-start; /* Align items at the top */
+    }
+    .memory-visualization,
+    #tabladedescripciondeparticiones {
+    flex: 1; /* Allow both divs to take equal space */
+    border: 1px solid #ddd; /* Optional: Add a border for clarity */
+    padding: 10px; /* Optional: Add padding inside the divs */
+    box-sizing: border-box; /* Ensure padding doesn't affect width */
+    }
     
     th {
         background-color: #f2f2f2;
     }
     #memorymapTable{
-        height:1000px;
+        height:1800px;
         width: 300px;
         
         border: 2px solid;

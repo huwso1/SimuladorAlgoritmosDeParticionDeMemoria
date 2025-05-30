@@ -1,10 +1,10 @@
 class AlgorithmInterface {
-    constructor(Procesos){
+    constructor(Procesos,cronograma,mediador){
         if (new.target === AlgorithmInterface) {
             throw new Error("AlgorithmInterface is an abstract class and cannot be instantiated directly.");
         }
     }
-    execute() {
+    execute(clock) {
         throw new Error("Method 'execute()' must be implemented.");
     }
     updateProcessTable() {
