@@ -37,6 +37,19 @@
                     <option value="4096">4096</option>
                 </select>
             </div>
+                <div id="variablePartitionSizeGroup" hidden="true" class="form-group">
+                <label for="partitionSize" >Tamaño de partición(KB):</label>
+                <select id="variablePartitionSize" >
+                    <option value="256">256</option>
+                    <option value="512">512</option>
+                    <option value="1024">1024</option>
+                    <option value="2048">2048</option>
+                    <option value="4096">4096</option>
+                </select>
+                <input type="button" value="Añadir particion" id="anadirparticion" >
+                <label for="anadirparticion" ></label>
+            </div>
+            
             <div class="form-group" id="simulationsize">
                 <label for="cicleNumber">Numero de ciclos:</label>
                 <input type="number" min="0" max="20" placeholder="Numero de ciclos a simular" id="cicleNumber" size="20">

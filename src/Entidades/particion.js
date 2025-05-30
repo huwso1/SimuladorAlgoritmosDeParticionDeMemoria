@@ -32,7 +32,7 @@ class particion{
     Generardescripciondeparticion(){
         this.descripciondeparticion={
             PID:"",
-            LO:"",
+            LO:0,
             DEC:this.direcciondeinicio,
             HEX:this.direcciondeinicio.toString(16)
         }
@@ -42,15 +42,18 @@ class particion{
             LO:document.createElement("td"),
             DEC:document.createElement("td"),
             HEX:document.createElement("td"),
+            TAMANOkb:document.createElement("td"),
         }
         this.descripciondeparticioncomponent.row.appendChild( this.descripciondeparticioncomponent.PID);
         this.descripciondeparticioncomponent.row.appendChild( this.descripciondeparticioncomponent.LO);
         this.descripciondeparticioncomponent.row.appendChild( this.descripciondeparticioncomponent.DEC);
         this.descripciondeparticioncomponent.row.appendChild( this.descripciondeparticioncomponent.HEX);
+        this.descripciondeparticioncomponent.row.appendChild( this.descripciondeparticioncomponent.TAMANOkb);
         this.descripciondeparticioncomponent.PID.textContent=this.descripciondeparticion.PID;
         this.descripciondeparticioncomponent.LO.textContent=this.descripciondeparticion.LO;
         this.descripciondeparticioncomponent.DEC.textContent=this.descripciondeparticion.DEC;
         this.descripciondeparticioncomponent.HEX.textContent=this.descripciondeparticion.HEX;
+        this.descripciondeparticioncomponent.TAMANOkb.textContent=this.tamano/1024+" KB";
         return this.descripciondeparticioncomponent.row;
     }
 

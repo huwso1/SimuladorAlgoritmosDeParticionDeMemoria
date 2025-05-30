@@ -2,12 +2,13 @@ import AlgorithmInterface from './AlgorithmInterface.js';
 // Importing AlgorithmInterface from the base class
 class ParticionesEstaticas extends AlgorithmInterface{
 
-    constructor(Procesos,cronograma,mediador,particiones){
+    constructor(Procesos,cronograma,mediador,particiones,criterio){
         super();
         this.Procesos=Procesos;
         this.cronograma=cronograma;
         this.mediador=mediador;
         this.particiones=particiones;
+        this.criterio=criterio; // Criterio de asignación de particiones
     }
     execute(clock) {
         this.clock=clock;
@@ -24,8 +25,10 @@ class ParticionesEstaticas extends AlgorithmInterface{
         if(processtoExecute.length>0){
             processtoExecute.forEach((proceso)=>{
                 
-                
-                if(!this.FindPartition(proceso)){
+                var algoritmo=this.selectcriteria(this.criterio);
+                //Seleccionar el algoritmo de asignación de particiones según el criterio
+
+                if(!algoritmo(proceso)){
                     //No se encontro particion, se debe enviar mensaje al mediador
                     this.mediador.AdviseProcessCouldNotBeAssigned(proceso.nombredeproceso,this.clock.time+1);
                     console.log("Le digo al mediador que haga algo con el proceso "+proceso.nombredeproceso);
@@ -81,6 +84,64 @@ class ParticionesEstaticas extends AlgorithmInterface{
        
         return result;
     }
+    FindPartitionWorst(proceso){
+        //Este algoritmo seria similar al peor ajuste
+        var result=false;
+        let tamano=proceso.memoriaautilizar;
+        var particionmasgrande=null;
+        this.particiones.slice().reverse().forEach((particion)=>{
+            //Si ya tiene una particion asignada retorna true
+            if(proceso.particion!=null){
+                result=true;
+                return true;
+            }
+            if(!particion.ocupado && particion.tamano>=tamano && particion.nombredeparticion!="SO" && proceso.particion==null){
+                //Si es la primera particion o es mas grande que la anterior, se asigna
+                if(particionmasgrande==null || particion.tamano>particionmasgrande.tamano){
+                    particionmasgrande=particion;
+                }
+            }
+
+        })
+        if(proceso.particion==null){
+            console.log(proceso.nombredeproceso+" se asigna a la particion "+particionmasgrande.nombredeparticion);
+            //Asignar el proceso a la particion
+            proceso.asignarParticion(particionmasgrande);
+            result=true;
+            return true;
+        }
+       
+        return result;
+    }
+    FindPartitionBest(proceso){
+        //Este algoritmo seria similar al Mejor ajuste
+        var result=false;
+        let tamano=proceso.memoriaautilizar;
+        var particionmaspequena=null;
+        this.particiones.slice().reverse().forEach((particion)=>{
+            //Si ya tiene una particion asignada retorna true
+            if(proceso.particion!=null){
+                result=true;
+                return true;
+            }
+            if(!particion.ocupado && particion.tamano>=tamano && particion.nombredeparticion!="SO" && proceso.particion==null){
+                //Si es la primera particion o es mas grande que la anterior, se asigna
+                if(particionmaspequena==null || particion.tamano<particionmaspequena.tamano){
+                    particionmaspequena=particion;
+                }
+            }
+
+        })
+        if(proceso.particion==null){
+            console.log(proceso.nombredeproceso+" se asigna a la particion "+particionmaspequena.nombredeparticion);
+            //Asignar el proceso a la particion
+            proceso.asignarParticion(particionmaspequena);
+            result=true;
+            return true;
+        }
+       
+        return result;
+    }
     FindProcessbyName(processName){
         
         for(let i=0;i<this.Procesos.length;i++){
@@ -92,6 +153,18 @@ class ParticionesEstaticas extends AlgorithmInterface{
         }
         return null;
         
+    }
+    selectcriteria(criterio){
+        switch(criterio) {
+            case 'first-fit':
+                return this.FindPartition.bind(this);
+            case 'worst-fit':
+                return this.FindPartitionWorst.bind(this);
+            case 'best-fit':
+                return this.FindPartitionBest.bind(this);
+            default:
+                throw new Error("Criterio de asignación no válido");
+        }
     }
     updateProcessTable() {
         throw new Error("Method 'updateProcessTable() ' must be implemented.");

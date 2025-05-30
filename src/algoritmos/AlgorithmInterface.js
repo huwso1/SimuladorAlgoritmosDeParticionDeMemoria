@@ -1,5 +1,5 @@
 class AlgorithmInterface {
-    constructor(Procesos,cronograma,mediador){
+    constructor(Procesos,cronograma,mediador,particiones){
         if (new.target === AlgorithmInterface) {
             throw new Error("AlgorithmInterface is an abstract class and cannot be instantiated directly.");
         }

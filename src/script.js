@@ -20,7 +20,8 @@ const config = {
         {id:"p6", name: "Proceso 6", sizeInDisk: "", sizeInCode:"", initializedDataSize:"", uninitializedDataSize:"", initialMemory:"", memoryToUse:"", inKB:""},
         {id:"p7", name: "Proceso 7", sizeInDisk: "", sizeInCode:"", initializedDataSize:"", uninitializedDataSize:"", initialMemory:"", memoryToUse:"", inKB:""},
         {id:"p8", name: "Proceso 8", sizeInDisk: "", sizeInCode:"", initializedDataSize:"", uninitializedDataSize:"", initialMemory:"", memoryToUse:"", inKB:""},
-    ]
+    ],
+    memoryMapHeightUnit:(1660/(16*1024)) // Unidades de altura para la visualización del mapa de memoria
 }
 
 const elements = {
@@ -63,6 +64,7 @@ document.getElementById("loadButton").addEventListener("change",(event)=>{
     procesosDisponibles=[]
     
     procesosdearchivo.forEach((proceso)=>{
+          var procesovisual=[]
           console.log(proceso)
           let tr = document.createElement("tr");
           var iddeproceso = proceso[0];
@@ -100,16 +102,16 @@ document.getElementById("loadButton").addEventListener("change",(event)=>{
             tamañodedatosinicializados.addEventListener("change",CalculateSize)
             tamañodedatossininicializar.addEventListener("change",CalculateSize)
           // Se guardan los campos modificables como un arreglo en un array de procesos disponibles
-          proceso.push(iddeproceso);
-          proceso.push(nombredeproceso);
-          proceso.push(tamañodecodigo);
-          proceso.push(tamañodedatosinicializados);
-          proceso.push(tamañodedatossininicializar);
-          proceso.push(tamañodememoriainicial);
-          proceso.push(tamañodememoriaausar);
-          proceso.push(tamañodeenKB);
+          procesovisual.push(iddeproceso);
+          procesovisual.push(nombredeproceso);
+          procesovisual.push(tamañodecodigo);
+          procesovisual.push(tamañodedatosinicializados);
+          procesovisual.push(tamañodedatossininicializar);
+          procesovisual.push(tamañodememoriainicial);
+          procesovisual.push(tamañodememoriaausar);
+          procesovisual.push(tamañodeenKB);
           
-          procesosDisponibles.push(proceso);
+          procesosDisponibles.push(procesovisual);
   
           var idtd = document.createElement("td");
           idtd.appendChild(document.createTextNode(iddeproceso));
@@ -280,6 +282,15 @@ function clearMemoryMap() {
          row.remove(); // Remove rows that are not part of the <thead>
      }
  });
+
+}
+function clearPartitionDesc() {
+  const rows = document.getElementById("partitionTable").querySelectorAll('tr');
+  rows.forEach((row) => {
+     if (!row.closest('thead')) {
+         row.remove(); // Remove rows that are not part of the <thead>
+     }
+ });
 }
 //Listener que se activa cuando la casilla del numbero de ciclos se modifica
 document.getElementById("cicleNumber").addEventListener("change",generateProcessOverTimeTable)
@@ -307,7 +318,7 @@ function generateProcessOverTimeTable(){
      procesosDisponibles.forEach((proceso)=>{
       let procesoSobreElTiempo=[];
       let processrow= document.createElement("tr");
-      let nombredeproceso=proceso[1];
+      let nombredeproceso=proceso[1].value;
       let NombredeprocesoColumna=document.createElement("td");
       
       NombredeprocesoColumna.textContent=nombredeproceso;
@@ -337,12 +348,55 @@ function generateProcessOverTimeTable(){
      })
 
 }
+//Listener para el boton de agregar particion de memoria
+document.getElementById("anadirparticion").addEventListener("click",generateVariablePartitions);
+//Funcion que gestiona la creacion de particiones de memoria para el algoritmo de particiones variable
+function generateVariablePartitions(){
+  //Se obtiene el valor de la particion variable
+  
+  var tamanodeparticion=document.getElementById("variablePartitionSize").value*1024;
+  let tabladedescripciondeparticiones=document.getElementById("partitionTable");
+  var AvailableMemory=config.memorySize;
+  var test=document.createElement("tr");
+  test.style.height=(config.memoryMapHeightUnit*tamanodeparticion)+"px";
+  var partition=new particion(test,tamanodeparticion,listadeparticiones[0].direccionfinal+1,"Particion"+listadeparticiones.length);
+   //Se anade la particion a la tabla de descripcion de particiones
+  tabladedescripciondeparticiones.appendChild(partition.Generardescripciondeparticion());
+  document.getElementById("memorymapTable").insertBefore(partition.htmlcomponent, document.getElementById("memorymapTable").children[2]);
+  listadeparticiones.unshift(partition);
 
+  //Se calcula la memoria disponible
+  listadeparticiones.forEach((partisione)=>{
+    AvailableMemory=AvailableMemory-partisione.tamano;
+  })
+  document.getElementById("variablePartitionSize").querySelectorAll("option").forEach((option)=>{
+    if(parseInt(option.value)*1024>AvailableMemory){
+      option.setAttribute("disabled","true");
+      const variablePartitionSize = document.getElementById("variablePartitionSize");
+      const firstEnabledOption = Array.from(variablePartitionSize.options).find(option => !option.disabled);
+
+      if (firstEnabledOption) {
+        variablePartitionSize.value = firstEnabledOption.value; // Cambiar el valor del select
+      }else{
+        variablePartitionSize.value = ""; // Si no hay opciones habilitadas, se limpia el select
+      }
+    }else{
+      option.removeAttribute("disabled");
+    }
+  })
+  // Seleccionar automáticamente una opción no deshabilitada
+  
+
+  
+}
 //Muestra los campos necesarios para llenar la informacion que cada algoritmo necesita
 function generateElementsForManagementMethod(event){
-  document.getElementById("partitionSize").setAttribute("hidden",true)
+  document.getElementById("partitionSizeGroup").setAttribute("hidden",true)
+  document.getElementById("variablePartitionSizeGroup").setAttribute("hidden",true);
+  document.getElementById("tabladedescripciondeparticiones").setAttribute("hidden",true)
+  document.getElementById("visualizaciondememoria").setAttribute("hidden","true");
   if(event.target.value=="fixed"){
-    var pts=document.getElementById("partitionSize")
+    var pts=document.getElementById("partitionSizeGroup")
     pts.removeAttribute("hidden");
     config.osPartition=mt.calculateOSPartitionSize(config.osSize);
     console.log(config.osPartition);
@@ -351,7 +405,23 @@ function generateElementsForManagementMethod(event){
 
   }
   if(event.target.value=="variable"){
-
+    
+    document.getElementById("visualizaciondememoria").removeAttribute("hidden");
+    listadeparticiones=[]
+    document.getElementById("variablePartitionSizeGroup").removeAttribute("hidden");
+    //Se crea la particion del sistema operativo
+    config.osPartition=mt.calculateOSPartitionSize(config.osSize);
+    document.getElementById("tabladedescripciondeparticiones").removeAttribute("hidden")
+    clearPartitionDesc();
+    clearMemoryMap();
+    listadeparticiones.push(createOSPartition())
+    document.getElementById("memorymapTable").appendChild(listadeparticiones[0].htmlcomponent);
+    //Se reestablecen las opciones del campo de particiones variables
+    document.getElementById("variablePartitionSize").querySelectorAll("option").forEach((option)=>{
+      option.removeAttribute("disabled");
+    })
+    
+    
   }
   if(event.target.value=="dynamic"){
 
@@ -371,26 +441,31 @@ function generatePartitions(event){
   generateStaticPartitions();
   
 }
+function createOSPartition(){
+  let OStr= document.createElement("tr");
+  let tabladedescripciondeparticiones=document.getElementById("partitionTable");
+  OStr.style.height=(config.memoryMapHeightUnit*config.osSize)+"px";
+  let begin=0;
+  var OSpartition=new particion(OStr,config.osSize,begin,"SO");
+  //Se anade la particion a la tabla de descripcion de particiones
+  tabladedescripciondeparticiones.appendChild(OSpartition.Generardescripciondeparticion());
+  OSpartition.AsignarProceso("SO");
+  return OSpartition;
+}
 function generateStaticPartitions(){
+  clearPartitionDesc();
   clearMemoryMap();
   let tamanodeparticion=document.getElementById("partitionSize").value*1024;
   let tabladedescripciondeparticiones=document.getElementById("partitionTable");
   var AvailableMemory=config.memorySize;
    listadeparticiones=[]
   //Crear la particion del sistema operativo
-  let OStr= document.createElement("tr");
-  let AuxMemoryProportion=config.osSize/config.memorySize;
-  OStr.style.height=(1660*AuxMemoryProportion)+"px";
-  let begin=0;
-  var OSpartition=new particion(OStr,config.osSize,begin,"SO");
-  //Se anade la particion a la tabla de descripcion de particiones
-  tabladedescripciondeparticiones.appendChild(OSpartition.Generardescripciondeparticion());
-  OSpartition.AsignarProceso("SO");
   
-  listadeparticiones.push(OSpartition);
+  
+  listadeparticiones.push(createOSPartition());
   let numerodeparticiones=(config.memorySize-config.osSize)/tamanodeparticion;
 
-  AuxMemoryProportion=tamanodeparticion/config.memorySize;
+  
   let memoriausada=config.osSize;
   for(let i=0;i<numerodeparticiones;i++){
   memoriausada=memoriausada+tamanodeparticion;
@@ -399,7 +474,7 @@ function generateStaticPartitions(){
     break
   }
   var test=document.createElement("tr");
-  test.style.height=(1660*AuxMemoryProportion)+"px";
+  test.style.height=(config.memoryMapHeightUnit*tamanodeparticion)+"px";
   var partition=new particion(test,tamanodeparticion,listadeparticiones[listadeparticiones.length-1].direccionfinal+1,"Particion"+i);
    //Se anade la particion a la tabla de descripcion de particiones
   tabladedescripciondeparticiones.appendChild(partition.Generardescripciondeparticion());
@@ -423,6 +498,12 @@ document.getElementById("start").addEventListener("click",()=>{
       //Se ejecuta el algoritmo de particiones estaticas
       let mediador=new AlgorithmMediator(procesosDisponibles,procesosDisponiblesSobreElTiempo,listadeparticiones,document.getElementById("memoryProcessTable"),document.getElementById("partitionTable"));
       mediador.ExecuteStaticPartitionAlgorithm();
+      document.getElementById("procesosenmemoria").removeAttribute("hidden");
+    }
+    if(document.getElementById("managementMethod").value=="variable"){
+      //Se ejecuta el algoritmo de particiones estaticas
+      let mediador=new AlgorithmMediator(procesosDisponibles,procesosDisponiblesSobreElTiempo,listadeparticiones,document.getElementById("memoryProcessTable"),document.getElementById("partitionTable"));
+      mediador.ExecuteVariablePartitionAlgorithm(document.getElementById("allocationAlgorithm").value);
       document.getElementById("procesosenmemoria").removeAttribute("hidden");
     }
   }else{
