@@ -30,11 +30,13 @@ class particion{
             this.htmlcomponent.textContent=this.nombredeparticion+"("+this.direcciondeinicio.toString(16)+"-"+this.direccionfinal.toString(16)+")";
     }
     Generardescripciondeparticion(){
+        if(this.ocupado!=true){
         this.descripciondeparticion={
             PID:"",
             LO:0,
             DEC:this.direcciondeinicio,
             HEX:this.direcciondeinicio.toString(16)
+        }
         }
         this.descripciondeparticioncomponent={
             row:document.createElement("tr"),
@@ -55,6 +57,22 @@ class particion{
         this.descripciondeparticioncomponent.HEX.textContent=this.descripciondeparticion.HEX;
         this.descripciondeparticioncomponent.TAMANOkb.textContent=this.tamano/1024+" KB";
         return this.descripciondeparticioncomponent.row;
+    }
+    Generarcampodefragmentolibre(){
+        if(this.ocupado==true){
+            return null;
+        }else{
+        this.fragmentolibredesc={
+            row:document.createElement("tr"),
+            direcciondeinicio:document.createElement("td"),
+            tamano:document.createElement("td"),
+        }
+        this.fragmentolibredesc.direcciondeinicio.textContent=this.direcciondeinicio.toString(16);
+        this.fragmentolibredesc.tamano.textContent=this.tamano/1024+" KB";
+        this.fragmentolibredesc.row.appendChild(this.fragmentolibredesc.direcciondeinicio);
+        this.fragmentolibredesc.row.appendChild(this.fragmentolibredesc.tamano);
+        return this.fragmentolibredesc.row;
+        }
     }
 
 

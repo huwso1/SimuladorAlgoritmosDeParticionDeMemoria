@@ -15,6 +15,16 @@ class Clock {
             callback(this); // Pass the Clock instance to the callback
         }, this.interval);
     }
+    startWithKey(callback) {
+        this.callback=callback;
+
+        document.addEventListener('keydown', (event) => {
+            if (event.code ==="AltRight") { // Detecta si la tecla presionada coincide con la especificada
+                
+                this.callback(this);
+            }
+        });
+    }
 
     stop() {
         if (this.timer) {

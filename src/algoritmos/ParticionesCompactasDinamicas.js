@@ -1,7 +1,6 @@
-import AlgorithmInterface from './AlgorithmInterface.js';
-// Importing AlgorithmInterface from the base class
-class ParticionesEstaticas extends AlgorithmInterface{
+import AlgorithmInterface from "./AlgorithmInterface.js";
 
+class ParticionesCompactasDinamicas extends AlgorithmInterface{
     constructor(Procesos,cronograma,mediador,particiones,criterio){
         super();
         this.Procesos=Procesos;
@@ -11,7 +10,6 @@ class ParticionesEstaticas extends AlgorithmInterface{
         this.criterio=criterio; // Criterio de asignación de particiones
     }
     execute(clock) {
-        
         this.clock=clock;
         this.mediador.ShowTime(this.clock.time);
         if(this.clock.time==this.cronograma[0].length-1){
@@ -20,8 +18,11 @@ class ParticionesEstaticas extends AlgorithmInterface{
             this.clock.stop();
             return;
         }
-        
+       
         var processtoExecute=this.recoverProcesstoExecute();
+        this.CompactPartitions();
+        this.mergeFreePartitions();
+        
         console.log(processtoExecute);
         //Si hay procesos a ejecutar, se debe buscar una particion para cada uno
         if(processtoExecute.length>0){
@@ -40,8 +41,11 @@ class ParticionesEstaticas extends AlgorithmInterface{
                 }
             })
         }
+        
+        //Actualizar las tablas de procesos y particiones
         this.clock.time=this.clock.time+1;
     }
+    //Metodo para recuperar los procesos que deben ser ejecutados en el ciclo actual
     recoverProcesstoExecute(){
         let processtoExecute=[];
         this.cronograma.forEach((processSchedule)=>{
@@ -68,7 +72,7 @@ class ParticionesEstaticas extends AlgorithmInterface{
         //Este algoritmo seria similar al primer ajuste
         var result=false;
         let tamano=proceso.memoriaautilizar;
-        this.particiones.slice().reverse().forEach((particion)=>{
+        this.particiones.slice().reverse().forEach((particion,index)=>{
             //Si ya tiene una particion asignada retorna true
             if(proceso.particion!=null){
                 result=true;
@@ -77,7 +81,16 @@ class ParticionesEstaticas extends AlgorithmInterface{
             if(!particion.ocupado && particion.tamano>=tamano && particion.nombredeparticion!="SO" && proceso.particion==null){
                 console.log(proceso.nombredeproceso+" se asigna a la particion "+particion.nombredeparticion);
                 //Asignar el proceso a la particion
-                proceso.asignarParticion(particion);
+                var originalindex=this.particiones.length-index-1; //Obtener el indice original de la particion
+                var numerodeparticion="D"
+                var NuevaParticion=proceso.asignarParticionDinamica(particion,numerodeparticion);
+                console.log(NuevaParticion);
+                //Si se asigno una nueva particion, se debe actualizar la lista de particiones
+                this.particiones.splice(originalindex, 0, NuevaParticion);
+                //Actualizar vista
+                this.mediador.DrawMemoryMap();
+                this.mediador.DrawPartitionDesc();
+                this.mediador.DrawFreeSegmentsDesc();
                 result=true;
                 return true;
             }
@@ -91,7 +104,8 @@ class ParticionesEstaticas extends AlgorithmInterface{
         var result=false;
         let tamano=proceso.memoriaautilizar;
         var particionmasgrande=null;
-        this.particiones.slice().reverse().forEach((particion)=>{
+        var olindex=0;
+        this.particiones.slice().reverse().forEach((particion,index)=>{
             //Si ya tiene una particion asignada retorna true
             if(proceso.particion!=null){
                 result=true;
@@ -100,15 +114,26 @@ class ParticionesEstaticas extends AlgorithmInterface{
             if(!particion.ocupado && particion.tamano>=tamano && particion.nombredeparticion!="SO" && proceso.particion==null){
                 //Si es la primera particion o es mas grande que la anterior, se asigna
                 if(particionmasgrande==null || particion.tamano>particionmasgrande.tamano){
+                    olindex=index;
                     particionmasgrande=particion;
                 }
+                
             }
 
         })
         if(proceso.particion==null && particionmasgrande!=null){
             console.log(proceso.nombredeproceso+" se asigna a la particion "+particionmasgrande.nombredeparticion);
             //Asignar el proceso a la particion
-            proceso.asignarParticion(particionmasgrande);
+            var originalindex=this.particiones.length-olindex-1; //Obtener el indice original de la particion
+            var numerodeparticion="D"
+            var NuevaParticion=proceso.asignarParticionDinamica(particionmasgrande,numerodeparticion);
+            console.log(NuevaParticion);
+            //Si se asigno una nueva particion, se debe actualizar la lista de particiones
+            this.particiones.splice(originalindex, 0, NuevaParticion);
+            //Actualizar vista
+            this.mediador.DrawMemoryMap();
+            this.mediador.DrawPartitionDesc();
+            this.mediador.DrawFreeSegmentsDesc();
             result=true;
             return true;
         }
@@ -120,7 +145,8 @@ class ParticionesEstaticas extends AlgorithmInterface{
         var result=false;
         let tamano=proceso.memoriaautilizar;
         var particionmaspequena=null;
-        this.particiones.slice().reverse().forEach((particion)=>{
+        var olindex=0;
+        this.particiones.slice().reverse().forEach((particion,index)=>{
             //Si ya tiene una particion asignada retorna true
             if(proceso.particion!=null){
                 result=true;
@@ -129,6 +155,7 @@ class ParticionesEstaticas extends AlgorithmInterface{
             if(!particion.ocupado && particion.tamano>=tamano && particion.nombredeparticion!="SO" && proceso.particion==null){
                 //Si es la primera particion o es mas grande que la anterior, se asigna
                 if(particionmaspequena==null || particion.tamano<particionmaspequena.tamano){
+                     olindex=index;
                     particionmaspequena=particion;
                 }
             }
@@ -136,8 +163,18 @@ class ParticionesEstaticas extends AlgorithmInterface{
         })
         if(proceso.particion==null && particionmaspequena!=null){
             console.log(proceso.nombredeproceso+" se asigna a la particion "+particionmaspequena.nombredeparticion);
+            
             //Asignar el proceso a la particion
-            proceso.asignarParticion(particionmaspequena);
+            var originalindex=this.particiones.length-olindex-1; //Obtener el indice original de la particion
+            var numerodeparticion="D" //Asignar un numero de particion dinamico
+            var NuevaParticion=proceso.asignarParticionDinamica(particionmaspequena,numerodeparticion);
+            console.log(NuevaParticion);
+            //Si se asigno una nueva particion, se debe actualizar la lista de particiones
+            this.particiones.splice(originalindex, 0, NuevaParticion);
+            //Actualizar vista
+            this.mediador.DrawMemoryMap();
+            this.mediador.DrawPartitionDesc();
+            this.mediador.DrawFreeSegmentsDesc();
             result=true;
             return true;
         }
@@ -168,6 +205,77 @@ class ParticionesEstaticas extends AlgorithmInterface{
                 throw new Error("Criterio de asignación no válido");
         }
     }
+    //Fusionar particiones adyacentes libres
+    mergeFreePartitions() {
+        while(this.existPartitionsToMerge()) {
+            
+        
+        this.particiones.forEach((particion, index) => {
+            const siguienteParticion = this.particiones[index + 1]; // Accede al siguiente elemento
+            if (siguienteParticion) {
+                if( !particion.ocupado && !siguienteParticion.ocupado) {
+                    //Si ambas particiones estan libres, las fusionamos
+                    particion.fusionarParticion(siguienteParticion);
+                    this.particiones.splice(index+1,1);
+                    console.log(this.particiones);
+                }
+                this.mediador.DrawMemoryMap();
+                this.mediador.DrawPartitionDesc();
+                this.mediador.DrawFreeSegmentsDesc();
+            }
+        });
+            }       
+ 
+        
+    }
+    CompactPartitions() {
+        
+        while(this.existPartitionsToCompact()) {
+        
+        this.particiones.forEach((particion, index) => {
+            const siguienteParticion = this.particiones[index + 1]; // Accede al siguiente elemento
+            if (siguienteParticion) {
+                if( particion.ocupado && !siguienteParticion.ocupado) {
+                    //Si la particion anterior esta libre la compactamos
+                   var particionVacia= particion.compactarParticion(siguienteParticion);
+                     //Obtener el indice original de la particion
+                     console.log(particion);
+                     console.log(siguienteParticion);
+                     console.log("se compacta la particion");
+                     this.particiones.splice(index+1,1);
+                     
+                    this.particiones.splice(index, 0, particionVacia);
+                    
+                }
+                this.mediador.DrawMemoryMap();
+                this.mediador.DrawPartitionDesc();
+                this.mediador.DrawFreeSegmentsDesc();
+            }
+        });
+    }   
+        console.log(this.particiones);
+        
+    }
+    existPartitionsToCompact(){
+        //Verifica si hay particiones adyacentes ocupadas
+        for(let i=0;i<this.particiones.length;i++){
+            if(i+1<this.particiones.length){ // Verifica que no se salga del rango
+             if(this.particiones[i].ocupado && !this.particiones[i+1].ocupado){
+                return true;
+             }
+        }
+        }
+        return false;
+    }
+    existPartitionsToMerge(){
+        //Verifica si hay particiones adyacentes libres
+        for(let i=0;i<this.particiones.length;i++){
+            if(!this.particiones[i].ocupado && !this.particiones[i+1].ocupado){
+                return true;
+            }
+        }
+        return false;
+    }
     updateProcessTable() {
         throw new Error("Method 'updateProcessTable() ' must be implemented.");
     }
@@ -179,5 +287,6 @@ class ParticionesEstaticas extends AlgorithmInterface{
         throw new Error("Method 'subscribe()' must be implemented.");
     }
 
+
 }
-export default ParticionesEstaticas;
+export default ParticionesCompactasDinamicas;

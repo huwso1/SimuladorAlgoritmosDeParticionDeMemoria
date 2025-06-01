@@ -25,6 +25,12 @@
                     <option value="dynamic">Particiones dinámicas sin compactación</option>
                     <option value="dynamic-compact">Particiones dinámicas con compactación</option>
                 </select>
+                <label for="metododeejecucion">Metodo de ejecucion:</label>
+                <select id="metododeejecucion" >
+                    <option value="reloj">Por reloj "5s"</option>
+                    <option value="secuencial">Secuencial "presione AltRight"</option>
+
+                </select>
             </div>
 
             <div class="form-group" id="partitionSizeGroup">
@@ -154,6 +160,18 @@
                 </thead>
                 <tbody></tbody>
             </table>
+                <div id="tabladedefragmentoslibresdiv" hidden="true">
+                    <h2> Tabla de fragmentos libres</h2>
+                    <table id="tabladedefragmentoslibres">
+                        <thead>
+                            <tr>
+                                <th>BASE</th>
+                                <th>Tamaño</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                        </table>
+                </div>
            </div>
         </div>
 

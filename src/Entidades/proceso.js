@@ -29,7 +29,15 @@ class proceso{
     }
     asignarParticion(particion){
         this.particion=particion;
-        this.particion.AsignarProceso(this.nombredeproceso);
+         this.particion.AsignarProceso(this.nombredeproceso);
+
+    }
+    asignarParticionDinamica(particion,numerodeparticion){
+        this.particion=particion;
+        
+        return this.particion.AsignarProceso(this.nombredeproceso,this.memoriaautilizar,numerodeparticion);
+
+
     }
     desasignarParticion(){
         this.particion.DesasignarProceso();

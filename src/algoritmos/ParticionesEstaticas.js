@@ -10,13 +10,16 @@ class ParticionesEstaticas extends AlgorithmInterface{
         this.particiones=particiones;
     }
     execute(clock) {
+        
         this.clock=clock;
+        this.mediador.ShowTime(this.clock.time);
         if(this.clock.time==this.cronograma[0].length-1){
             //Si el reloj llega al final del cronograma, se debe detener
             console.log("El reloj ha llegado al final del cronograma");
             this.clock.stop();
             return;
         }
+        
         
         var processtoExecute=this.recoverProcesstoExecute();
         console.log(processtoExecute);

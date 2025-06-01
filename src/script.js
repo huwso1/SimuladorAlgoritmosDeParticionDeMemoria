@@ -2,11 +2,12 @@ import fileUtil from './util/fileUtil.js';
 import mathUtil from './util/mathUtil.js';
 import particion from './Entidades/particion.js';
 import AlgorithmMediator from './AlgorithmMediator.js';
+import particionDinamica from './Entidades/particionDinamica.js';
 
 const fu=new fileUtil();
 const mt=new mathUtil();
 //Configuracion inicial
-const config = {
+export const config = {
     memorySize:16*1024*1024,
     osSize:1024*1024,
     osPartition:0,
@@ -65,7 +66,7 @@ document.getElementById("loadButton").addEventListener("change",(event)=>{
     
     procesosdearchivo.forEach((proceso)=>{
           var procesovisual=[]
-          console.log(proceso)
+          
           let tr = document.createElement("tr");
           var iddeproceso = proceso[0];
           let nombredeproceso = document.createElement("input");
@@ -275,7 +276,7 @@ function clearProcessinTimeTable() {
       }
   });
 }
-function clearMemoryMap() {
+export function clearMemoryMap() {
   const rows = document.getElementById("memorymapTable").querySelectorAll('tr');
   rows.forEach((row) => {
      if (!row.closest('thead')) {
@@ -284,8 +285,16 @@ function clearMemoryMap() {
  });
 
 }
-function clearPartitionDesc() {
+export function clearPartitionDesc() {
   const rows = document.getElementById("partitionTable").querySelectorAll('tr');
+  rows.forEach((row) => {
+     if (!row.closest('thead')) {
+         row.remove(); // Remove rows that are not part of the <thead>
+     }
+ });
+}
+export function cleanSreeSegmentsDesc() {
+  const rows = document.getElementById("tabladedefragmentoslibres").querySelectorAll('tr');
   rows.forEach((row) => {
      if (!row.closest('thead')) {
          row.remove(); // Remove rows that are not part of the <thead>
@@ -399,7 +408,7 @@ function generateElementsForManagementMethod(event){
     var pts=document.getElementById("partitionSizeGroup")
     pts.removeAttribute("hidden");
     config.osPartition=mt.calculateOSPartitionSize(config.osSize);
-    console.log(config.osPartition);
+    
     document.getElementById("tabladedescripciondeparticiones").removeAttribute("hidden")
     
 
@@ -424,10 +433,52 @@ function generateElementsForManagementMethod(event){
     
   }
   if(event.target.value=="dynamic"){
-
+    document.getElementById("visualizaciondememoria").removeAttribute("hidden");
+    document.getElementById("tabladedescripciondeparticiones").removeAttribute("hidden")
+    document.getElementById("tabladedefragmentoslibresdiv").removeAttribute("hidden")
+    listadeparticiones=[]
+        //Se crea la particion del sistema operativo
+        config.osPartition=mt.calculateOSPartitionSize(config.osSize);
+        clearPartitionDesc();
+        clearMemoryMap();
+        cleanSreeSegmentsDesc();
+        //Se reestablecen las opciones del campo de particiones variables
+        listadeparticiones.push(createOSPartition())
+        document.getElementById("memorymapTable").appendChild(listadeparticiones[0].htmlcomponent);
+        //Se crea una particion de memoria que ocupa todo el espacio restante
+        let tamanodeparticion=config.memorySize-config.osPartition;
+                var test=document.createElement("tr");
+        test.style.height=(config.memoryMapHeightUnit*tamanodeparticion)+"px";
+        var partition=new particionDinamica(test,tamanodeparticion,listadeparticiones[0].direccionfinal+1,"Particion"+listadeparticiones.length);
+        //Se anade la particion a la tabla de descripcion de particiones
+        document.getElementById("memorymapTable").insertBefore(partition.htmlcomponent, document.getElementById("memorymapTable").children[2]);
+        document.getElementById("partitionTable").appendChild(partition.Generardescripciondeparticion());
+        document.getElementById("tabladedefragmentoslibres").appendChild(partition.Generarcampodefragmentolibre());
+        listadeparticiones.unshift(partition);
   }
   if(event.target.value=="dynamic-compact"){
-
+    document.getElementById("visualizaciondememoria").removeAttribute("hidden");
+    document.getElementById("tabladedescripciondeparticiones").removeAttribute("hidden")
+    document.getElementById("tabladedefragmentoslibresdiv").removeAttribute("hidden")
+    listadeparticiones=[]
+        //Se crea la particion del sistema operativo
+        config.osPartition=mt.calculateOSPartitionSize(config.osSize);
+        clearPartitionDesc();
+        clearMemoryMap();
+        cleanSreeSegmentsDesc();
+        //Se reestablecen las opciones del campo de particiones variables
+        listadeparticiones.push(createOSPartition())
+        document.getElementById("memorymapTable").appendChild(listadeparticiones[0].htmlcomponent);
+        //Se crea una particion de memoria que ocupa todo el espacio restante
+        let tamanodeparticion=config.memorySize-config.osPartition;
+                var test=document.createElement("tr");
+        test.style.height=(config.memoryMapHeightUnit*tamanodeparticion)+"px";
+        var partition=new particionDinamica(test,tamanodeparticion,listadeparticiones[0].direccionfinal+1,"Particion"+listadeparticiones.length);
+        //Se anade la particion a la tabla de descripcion de particiones
+        document.getElementById("memorymapTable").insertBefore(partition.htmlcomponent, document.getElementById("memorymapTable").children[2]);
+        document.getElementById("partitionTable").appendChild(partition.Generardescripciondeparticion());
+        document.getElementById("tabladedefragmentoslibres").appendChild(partition.Generarcampodefragmentolibre());
+        listadeparticiones.unshift(partition);
   }
 }
 //Listeners del campo ManagementMethod
@@ -461,8 +512,8 @@ function generateStaticPartitions(){
    listadeparticiones=[]
   //Crear la particion del sistema operativo
   
-  
-  listadeparticiones.push(createOSPartition());
+  let OStr=createOSPartition();
+  listadeparticiones.push(OStr);
   let numerodeparticiones=(config.memorySize-config.osSize)/tamanodeparticion;
 
   
@@ -483,12 +534,12 @@ function generateStaticPartitions(){
  var listaauxiliar=[];
 //Se reorganizan las particiones para que aparezcan en orden
   for(let i=listadeparticiones.length-1;i>=0;i--){
-    console.log(listadeparticiones[i])
+    
     document.getElementById("memorymapTable").appendChild(listadeparticiones[i].htmlcomponent);
    listaauxiliar.push(listadeparticiones[i]);
   }
   listadeparticiones=listaauxiliar;
-document.getElementById("memorymapTable").appendChild(OStr);
+document.getElementById("memorymapTable").appendChild(OStr.htmlcomponent);
 
 }
 document.getElementById("start").addEventListener("click",()=>{
@@ -496,14 +547,28 @@ document.getElementById("start").addEventListener("click",()=>{
   if(procesosDisponibles.length>1 && listadeparticiones.length>1 && procesosDisponiblesSobreElTiempo.length>1){
     if(document.getElementById("managementMethod").value=="fixed"){
       //Se ejecuta el algoritmo de particiones estaticas
-      let mediador=new AlgorithmMediator(procesosDisponibles,procesosDisponiblesSobreElTiempo,listadeparticiones,document.getElementById("memoryProcessTable"),document.getElementById("partitionTable"));
+      let mediador=new AlgorithmMediator(procesosDisponibles,procesosDisponiblesSobreElTiempo,listadeparticiones,document.getElementById("memoryProcessTable"),document.getElementById("partitionTable"),document.getElementById("metododeejecucion").value);
       mediador.ExecuteStaticPartitionAlgorithm();
       document.getElementById("procesosenmemoria").removeAttribute("hidden");
     }
     if(document.getElementById("managementMethod").value=="variable"){
       //Se ejecuta el algoritmo de particiones estaticas
-      let mediador=new AlgorithmMediator(procesosDisponibles,procesosDisponiblesSobreElTiempo,listadeparticiones,document.getElementById("memoryProcessTable"),document.getElementById("partitionTable"));
+      let mediador=new AlgorithmMediator(procesosDisponibles,procesosDisponiblesSobreElTiempo,listadeparticiones,document.getElementById("memoryProcessTable"),document.getElementById("partitionTable"),document.getElementById("metododeejecucion").value);
       mediador.ExecuteVariablePartitionAlgorithm(document.getElementById("allocationAlgorithm").value);
+      document.getElementById("procesosenmemoria").removeAttribute("hidden");
+    }
+    if(document.getElementById("managementMethod").value=="dynamic"){
+      //Se ejecuta el algoritmo de particiones dinamicas sin compactacion
+      let mediador=new AlgorithmMediator(procesosDisponibles,procesosDisponiblesSobreElTiempo,listadeparticiones,document.getElementById("memoryProcessTable"),
+      document.getElementById("partitionTable"),document.getElementById("metododeejecucion").value);
+      mediador.ExecuteDynamicPartitionAlgorithm(document.getElementById("allocationAlgorithm").value,document.getElementById("tabladedefragmentoslibres"),cleanSreeSegmentsDesc);
+      document.getElementById("procesosenmemoria").removeAttribute("hidden");
+    }
+    if(document.getElementById("managementMethod").value=="dynamic-compact"){
+      //Se ejecuta el algoritmo de particiones dinamicas sin compactacion
+      let mediador=new AlgorithmMediator(procesosDisponibles,procesosDisponiblesSobreElTiempo,listadeparticiones,document.getElementById("memoryProcessTable"),
+      document.getElementById("partitionTable"),document.getElementById("metododeejecucion").value);
+      mediador.ExecuteDynamicCompactPartitionAlgorithm(document.getElementById("allocationAlgorithm").value,document.getElementById("tabladedefragmentoslibres"),cleanSreeSegmentsDesc);
       document.getElementById("procesosenmemoria").removeAttribute("hidden");
     }
   }else{
