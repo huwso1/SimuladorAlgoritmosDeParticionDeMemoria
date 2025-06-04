@@ -269,6 +269,7 @@ document.getElementById("numberOfProcesses").addEventListener("change",(event)=>
     });
 }
 function clearProcessinTimeTable() {
+  procesosDisponiblesSobreElTiempo=[]
    const rows = elements.processOverTime.querySelectorAll('tr');
    rows.forEach((row) => {
       if (!row.closest('thead')) {
@@ -404,6 +405,7 @@ function generateElementsForManagementMethod(event){
   document.getElementById("variablePartitionSizeGroup").setAttribute("hidden",true);
   document.getElementById("tabladedescripciondeparticiones").setAttribute("hidden",true)
   document.getElementById("visualizaciondememoria").setAttribute("hidden","true");
+ 
   if(event.target.value=="fixed"){
     var pts=document.getElementById("partitionSizeGroup")
     pts.removeAttribute("hidden");
